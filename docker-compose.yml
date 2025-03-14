@@ -1,8 +1,13 @@
-version: '3.8'
+
 
 services:
   db:
-    image: postgres:15
+    image: postgres:15-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]  # Замените на ваше имя пользователя/имя базы данных
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
@@ -18,7 +23,8 @@ services:
     build: .
     restart: always
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file:
       - ./.env
     volumes:
