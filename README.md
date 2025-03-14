@@ -215,7 +215,7 @@ docker-compose up -d
 
 2. **Клонируйте репозиторий**:
    ```bash
-   git clone https://github.com/yourusername/astro-horoscope.git
+   git clone https://github.com/k3ksoff/astro-horoscope.git
    cd astro-horoscope
    ```
 
@@ -443,7 +443,7 @@ docker-compose logs web
 docker-compose ps
 ```
 3. Убедитесь, что переменные окружения указаны правильно
-```
+
 
 ## 🗄️ База данных и структура данных
 
@@ -524,41 +524,3 @@ erDiagram
    - Каждый знак зодиака может иметь множество предсказаний (по одному на каждый день)
    - Реализуется через внешний ключ `sign_id` в таблице `HoroscopePrediction`
    - Ограничение: `ON DELETE CASCADE` - при удалении знака зодиака удаляются все его предсказания
-
-### 🔍 Индексы и ограничения
-
-1. **Уникальный индекс** в таблице `HoroscopePrediction`:
-   - По полям `sign_id` и `date`
-   - Обеспечивает уникальность предсказания для каждого знака на конкретную дату
-   - SQL: `UNIQUE INDEX idx_sign_date ON horoscope_horoscopeprediction (sign_id, date);`
-
-2. **Индекс по дате** для быстрого поиска предсказаний:
-   - По полю `date` в таблице `HoroscopePrediction`
-   - Ускоряет поиск предсказаний на определенную дату
-   - SQL: `CREATE INDEX idx_prediction_date ON horoscope_horoscopeprediction (date);`
-
-### 📈 Пример SQL-запросов
-
-#### Получение предсказания для знака на сегодня:
-
-```sql
-SELECT hp.*
-FROM horoscope_horoscopeprediction hp
-JOIN horoscope_zodiacsign zs ON hp.sign_id = zs.id
-WHERE zs.name = 'Овен' AND hp.date = CURRENT_DATE;
-```
-
-#### Получение всех знаков зодиака с предсказаниями на сегодня:
-
-```sql
-SELECT zs.name, hp.prediction, hp.love, hp.career, hp.health, hp.lucky_number
-FROM horoscope_zodiacsign zs
-LEFT JOIN horoscope_horoscopeprediction hp ON zs.id = hp.sign_id AND hp.date = CURRENT_DATE
-ORDER BY zs.id;
-```
-
-#### Получение шаблонов для категории "любовь":
-
-```sql
-SELECT * FROM horoscope_prediction WHERE category = 'love';
-```
