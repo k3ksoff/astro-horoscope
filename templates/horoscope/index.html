@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Выберите свой знак зодиака - Астро-Гороскоп{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        padding: 3rem 0 5rem;
+        text-align: center;
+        position: relative;
+    }
+    
+    .hero-img {
+        max-width: 250px;
+        margin-bottom: 2.5rem;
+        filter: drop-shadow(0 10px 20px rgba(138, 43, 226, 0.3));
+    }
+    
+    .date-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        color: white;
+        padding: 0.75rem 1.75rem;
+        border-radius: 50px;
+        font-weight: 500;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 20px rgba(106, 90, 205, 0.3);
+    }
+    
+    .zodiac-grid {
+        margin-top: 4rem;
+    }
+    
+    .zodiac-symbol {
+        font-size: 2.5rem;
+        display: block;
+        margin-bottom: 0.75rem;
+        color: var(--primary-color);
+    }
+    
+    .zodiac-icon-container svg {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1rem;
+        transition: transform 0.5s ease;
+    }
+    
+    .zodiac-card:hover .zodiac-icon-container svg {
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    .zodiac-card {
+        background-color: white;
+        border-radius: 20px;
+        padding: 2rem;
+        height: 100%;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+    
+    .zodiac-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(138, 43, 226, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+        z-index: -1;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+    }
+    
+    .zodiac-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(106, 90, 205, 0.15);
+    }
+    
+    .zodiac-card:hover::before {
+        opacity: 1;
+    }
+    
+    .zodiac-card .card-title {
+        font-weight: 600;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: var(--primary-color);
+    }
+    
+    .sign-date-range {
+        color: #6c757d;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-section {
+        margin-top: 5rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(138, 43, 226, 0.05) 0%, rgba(106, 90, 205, 0.05) 100%);
+        border-radius: 20px;
+    }
+    
+    .info-section h3 {
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+    }
+    
+    .floating {
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(15deg); }
+        100% { transform: translateY(0px) rotate(0deg); }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'img/zodiac_symbols.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Заменяем иконки знаков зодиака на SVG
+        document.querySelectorAll('.zodiac-icon-container').forEach(function(container) {
+            const signName = container.getAttribute('data-sign').toLowerCase();
+            if (ZodiacSymbols[getZodiacKey(signName)]) {
+                container.innerHTML = ZodiacSymbols[getZodiacKey(signName)];
+            }
+        });
+        
+        // Получение ключа для знака зодиака
+        function getZodiacKey(signName) {
+            const mapping = {
+                'овен': 'aries',
+                'телец': 'taurus',
+                'близнецы': 'gemini',
+                'рак': 'cancer',
+                'лев': 'leo',
+                'дева': 'virgo',
+                'весы': 'libra',
+                'скорпион': 'scorpio',
+                'стрелец': 'sagittarius',
+                'козерог': 'capricorn',
+                'водолей': 'aquarius',
+                'рыбы': 'pisces'
+            };
+            
+            return mapping[signName] || signName;
+        }
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section" data-aos="fade-up">
+    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTAiIGhlaWdodD0iMjUwIiB2aWV3Qm94PSIwIDAgMjUwIDI1MCIgZmlsbD0ibm9uZSI+CiAgPGNpcmNsZSBjeD0iMTI1IiBjeT0iMTI1IiByPSIxMjAiIGZpbGw9IiM4YTJiZTIiIGZpbGwtb3BhY2l0eT0iMC4xIi8+CiAgPGNpcmNsZSBjeD0iMTI1IiBjeT0iMTI1IiByPSI5MCIgc3Ryb2tlPSIjOGEyYmUyIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1kYXNoYXJyYXk9IjYgNiIvPgogIDxjaXJjbGUgY3g9IjEyNSIgY3k9IjEyNSIgcj0iNjAiIHN0cm9rZT0iIzhhMmJlMiIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPGNpcmNsZSBjeD0iMTI1IiBjeT0iMTI1IiByPSIzMCIgZmlsbD0iIzhhMmJlMiIgZmlsbC1vcGFjaXR5PSIwLjMiLz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSI4MCIgcj0iMTUiIGZpbGw9IiM5MzcwZGIiLz4KICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjE3MCIgcj0iMTAiIGZpbGw9IiM2YTVhY2QiLz4KICA8Y2lyY2xlIGN4PSIxODAiIGN5PSIxOTAiIHI9IjgiIGZpbGw9IiNkYTk4ZjgiLz4KICA8Y2lyY2xlIGN4PSI3MCIgY3k9IjgwIiByPSIxMiIgZmlsbD0iIzY1NGVhMyIvPgo8L3N2Zz4=" class="hero-img floating" alt="Zodiac">
+    
+    <h2 class="display-5 mb-4">Выберите свой знак зодиака</h2>
+    <div class="date-badge">
+        <i class="fas fa-calendar-alt me-2"></i>
+        Гороскоп на {{ today|date:"d.m.Y" }}
+    </div>
+    
+    {% if error %}
+        <div class="alert alert-warning mt-3" data-aos="fade-up">{{ error }}</div>
+    {% endif %}
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 zodiac-grid">
+    {% for sign in signs %}
+    <div class="col" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:forloop.counter0 }}0">
+        <div class="zodiac-card">
+            <div class="zodiac-icon-container" data-sign="{{ sign.name }}"></div>
+            <h3 class="card-title">{{ sign.name }}</h3>
+            <p class="sign-date-range">{{ sign.date_range }}</p>
+            <a href="{% url 'sign_detail' sign.id %}" class="btn btn-primary w-100">
+                <i class="fas fa-star me-2"></i>Узнать гороскоп
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center" data-aos="fade-up">
+        <div class="prediction-block">
+            <p>Знаки зодиака не найдены. Пожалуйста, проверьте базу данных.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="info-section" data-aos="fade-up">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2 text-center">
+            <h3 class="mb-4"><i class="fas fa-question-circle me-2"></i>Что такое гороскоп?</h3>
+            <p>Гороскоп — это астрологический прогноз, основанный на расположении звезд и планет в определенный момент времени. 
+            Он предлагает рекомендации и предсказания о личностных качествах, отношениях, карьере и других аспектах жизни, 
+            связанных с вашим знаком зодиака.</p>
+            <p class="mb-0">Ежедневные гороскопы позволяют получить представление о том, какие возможности и вызовы могут встретиться на вашем пути.</p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Гороскоп для {{ sign.name }} на сегодня - Астро-Гороскоп{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    .sign-header {
+        text-align: center;
+        padding: 3rem 0;
+        position: relative;
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(106, 90, 205, 0.3);
+        overflow: hidden;
+    }
+    
+    .sign-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="white"/></svg>');
+        background-size: 20px 20px;
+        opacity: 0.1;
+    }
+    
+    .sign-symbol {
+        font-size: 5rem;
+        display: inline-block;
+        margin-bottom: 1rem;
+        color: white;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+    
+    .date-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+        backdrop-filter: blur(5px);
+    }
+    
+    .prediction-category {
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .prediction-category:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(106, 90, 205, 0.2);
+    }
+    
+    .prediction-bg {
+        position: absolute;
+        top: 0;
+        right: 0;
+        opacity: 0.05;
+        font-size: 8rem;
+        line-height: 1;
+        z-index: 0;
+    }
+    
+    .prediction-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .share-buttons {
+        margin-top: 2rem;
+    }
+    
+    .share-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        color: white;
+        margin: 0 5px;
+        transition: all 0.3s ease;
+    }
+    
+    .share-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(106, 90, 205, 0.3);
+    }
+    
+    .prediction-divider {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        margin: 2rem 0;
+        opacity: 0.3;
+    }
+    
+    .zodiac-svg-large {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto;
+        display: block;
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    }
+    
+    .zodiac-svg-large path,
+    .zodiac-svg-large circle {
+        stroke: white !important;
+    }
+    
+    .zodiac-svg-container svg circle[fill="#8a2be2"] {
+        fill: rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    .btn-outline-primary, 
+    .btn-primary,
+    .btn-outline-primary:focus, 
+    .btn-primary:focus {
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 8px 20px;
+        box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-primary:hover, 
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(138, 43, 226, 0.4);
+        background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+        color: white;
+    }
+    
+    .btn-outline-primary.active {
+        background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+        color: white;
+    }
+    
+    .main-prediction {
+        border-left: 4px solid var(--primary-color);
+        padding-left: 1.5rem;
+        font-style: italic;
+        color: #666;
+        line-height: 1.8;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'img/zodiac_symbols.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Заменяем иконки знаков зодиака на SVG
+        document.querySelectorAll('.zodiac-svg-container').forEach(function(container) {
+            const signName = container.getAttribute('data-sign').toLowerCase();
+            if (ZodiacSymbols[getZodiacKey(signName)]) {
+                container.innerHTML = ZodiacSymbols[getZodiacKey(signName)];
+            }
+        });
+        
+        // Получение ключа для знака зодиака
+        function getZodiacKey(signName) {
+            const mapping = {
+                'овен': 'aries',
+                'телец': 'taurus',
+                'близнецы': 'gemini',
+                'рак': 'cancer',
+                'лев': 'leo',
+                'дева': 'virgo',
+                'весы': 'libra',
+                'скорпион': 'scorpio',
+                'стрелец': 'sagittarius',
+                'козерог': 'capricorn',
+                'водолей': 'aquarius',
+                'рыбы': 'pisces'
+            };
+            
+            return mapping[signName] || signName;
+        }
+        
+        // Добавляем класс к SVG для увеличения размера
+        document.querySelectorAll('.zodiac-svg-container svg').forEach(function(svg) {
+            svg.classList.add('zodiac-svg-large');
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="sign-header" data-aos="fade-up">
+    <div class="zodiac-svg-container" data-sign="{{ sign.name }}"></div>
+    <h2 class="display-5 mt-3">Гороскоп для {{ sign.name }}</h2>
+    <div class="date-badge">
+        <i class="fas fa-calendar-alt me-2"></i>
+        {{ horoscope.date|date:"d.m.Y" }}
+    </div>
+    <p class="mb-0 text-white-50">{{ sign.date_range }}</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 offset-lg-2">
+        <div class="prediction-block" data-aos="fade-up">
+            <div class="mb-4 prediction-content">
+                <h3><i class="fas fa-star me-2 text-primary"></i>Общий гороскоп</h3>
+                <p class="fs-5 main-prediction">{{ horoscope.prediction }}</p>
+            </div>
+
+            <div class="prediction-divider"></div>
+
+            <div class="mt-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="prediction-block prediction-category">
+                    <div class="prediction-bg">❤️</div>
+                    <div class="prediction-content">
+                        <div class="prediction-icon text-danger">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h4>Любовь</h4>
+                        <p>{{ horoscope.love }}</p>
+                    </div>
+                </div>
+                
+                <div class="prediction-block prediction-category" data-aos="fade-up" data-aos-delay="200">
+                    <div class="prediction-bg">💼</div>
+                    <div class="prediction-content">
+                        <div class="prediction-icon text-primary">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <h4>Карьера</h4>
+                        <p>{{ horoscope.career }}</p>
+                    </div>
+                </div>
+                
+                <div class="prediction-block prediction-category" data-aos="fade-up" data-aos-delay="300">
+                    <div class="prediction-bg">💪</div>
+                    <div class="prediction-content">
+                        <div class="prediction-icon text-success">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <h4>Здоровье</h4>
+                        <p>{{ horoscope.health }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5" data-aos="fade-up" data-aos-delay="400">
+                <div class="lucky-number-block d-inline-block px-5 py-4">
+                    <h4 class="text-white mb-3">Ваше счастливое число</h4>
+                    <div class="lucky-number">{{ horoscope.lucky_number }}</div>
+                </div>
+            </div>
+            
+        </div>
+        
+        <div class="mt-5 text-center" data-aos="fade-up">
+            <a href="{% url 'index' %}" class="btn btn-primary">
+                <i class="fas fa-arrow-left me-2"></i>Вернуться к списку знаков
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if sign.description %}
+<div class="row mt-5" data-aos="fade-up" data-aos-delay="100">
+    <div class="col-lg-8 offset-lg-2">
+        <div class="prediction-block">
+            <h3><i class="fas fa-info-circle me-2 text-primary"></i>О знаке {{ sign.name }}</h3>
+            <p>{{ sign.description }}</p>
+            
+            <div class="mt-4">
+                <h5 class="mb-3">Совместимость</h5>
+                <div class="d-flex flex-wrap justify-content-center">
+                    {% for other_sign in compatible_signs %}
+                    <a href="{% url 'sign_by_name' other_sign %}" class="btn btn-outline-primary m-1">{{ other_sign }}</a>
+                    {% empty %}
+                    <p class="text-muted">Информация о совместимости недоступна.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row mt-5" data-aos="fade-up">
+    <div class="col-lg-8 offset-lg-2">
+        <div class="prediction-block text-center">
+            <h4>Другие знаки зодиака</h4>
+            <div class="d-flex flex-wrap justify-content-center mt-3">
+                <a href="{% url 'sign_by_name' 'Овен' %}" class="btn {% if sign.name == 'Овен' %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">♈ Овен</a>
+                <a href="{% url 'sign_by_name' 'Телец' %}" class="btn {% if sign.name == 'Телец' %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">♉ Телец</a>
+                <a href="{% url 'sign_by_name' 'Близнецы' %}" class="btn {% if sign.name == 'Близнецы' %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">♊ Близнецы</a>
+                <a href="{% url 'sign_by_name' 'Рак' %}" class="btn {% if sign.name == 'Рак' %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">♋ Рак</a>
+                <a href="{% url 'sign_by_name' 'Лев' %}" class="btn {% if sign.name == 'Лев' %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">♌ Лев</a>
+                <a href="{% url 'sign_by_name' 'Дева' %}" class="btn {% if sign.name == 'Дева' %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">♍ Дева</a>
+                <a href="{% url 'sign_by_name' 'Весы' %}" class="btn {% if sign.name == 'Весы' %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">♎ Весы</a>
+                <a href="{% url 'sign_by_name' 'Скорпион' %}" class="btn {% if sign.name == 'Скорпион' %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">♏ Скорпион</a>
+                <a href="{% url 'sign_by_name' 'Стрелец' %}" class="btn {% if sign.name == 'Стрелец' %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">♐ Стрелец</a>
+                <a href="{% url 'sign_by_name' 'Козерог' %}" class="btn {% if sign.name == 'Козерог' %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">♑ Козерог</a>
+                <a href="{% url 'sign_by_name' 'Водолей' %}" class="btn {% if sign.name == 'Водолей' %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">♒ Водолей</a>
+                <a href="{% url 'sign_by_name' 'Рыбы' %}" class="btn {% if sign.name == 'Рыбы' %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">♓ Рыбы</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
