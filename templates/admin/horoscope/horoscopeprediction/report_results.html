@@ -1,0 +1,288 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static "admin/css/forms.css" %}">
+<style>
+    .module {
+        margin-bottom: 20px;
+    }
+    .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .report-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .button {
+        background: #79aec8;
+        color: #fff;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-block;
+        text-decoration: none;
+    }
+    .button:hover {
+        background: #609ab6;
+    }
+    .button.secondary {
+        background: #417690;
+    }
+    .button.secondary:hover {
+        background: #366477;
+    }
+    .results-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .results-table th, .results-table td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+    .results-table th {
+        /* background-color: #f5f5f5; */
+    }
+    .chart-container {
+        width: 100%;
+        max-width: 800px;
+        height: 400px;
+        margin: 20px auto;
+    }
+    .sentiment-positive {
+        color: #28a745;
+    }
+    .sentiment-negative {
+        color: #dc3545;
+    }
+    .sentiment-neutral {
+        color: #6c757d;
+    }
+    .sentiment-summary {
+        display: flex;
+        justify-content: space-around;
+        margin: 20px 0;
+        text-align: center;
+    }
+    .sentiment-block {
+        padding: 15px;
+        border-radius: 8px;
+        min-width: 150px;
+    }
+    .sentiment-count {
+        font-size: 24px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    .positive-block {
+        background-color: rgba(40, 167, 69, 0.1);
+    }
+    .negative-block {
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+    .neutral-block {
+        background-color: rgba(108, 117, 125, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url 'admin:horoscope_horoscopeprediction_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; <a href="{% url 'admin:horoscope_reports' %}">{% translate 'Reports' %}</a>
+    &rsaquo; {% translate 'Results' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module">
+        <div class="report-header">
+            <h2>{{ report_title }}</h2>
+            <div class="report-actions">
+                <a href="{% url 'admin:horoscope_reports' %}" class="button secondary">Назад к отчетам</a>
+                <a href="{% url 'admin:horoscope_export_report_csv' %}" class="button">Экспорт в CSV</a>
+            </div>
+        </div>
+        
+        <div class="report-filters">
+            <p>
+                <strong>Период:</strong> 
+                {% if start_date %}с {{ start_date }}{% endif %}
+                {% if end_date %}по {{ end_date }}{% endif %}
+            </p>
+        </div>
+        
+        {% if report_type == 'predictions_by_sign' or report_type == 'predictions_by_date' or report_type == 'lucky_numbers' %}
+            <div class="chart-container">
+                <canvas id="reportChart"></canvas>
+            </div>
+            
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        {% if report_type == 'predictions_by_sign' %}
+                            <th>Знак зодиака</th>
+                        {% elif report_type == 'predictions_by_date' %}
+                            <th>Дата</th>
+                        {% elif report_type == 'lucky_numbers' %}
+                            <th>Счастливое число</th>
+                        {% endif %}
+                        <th>Количество предсказаний</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in report_data %}
+                        <tr>
+                            {% if report_type == 'predictions_by_sign' %}
+                                <td>{{ item.sign__name }}</td>
+                            {% elif report_type == 'predictions_by_date' %}
+                                <td>{{ item.date|date:"d.m.Y" }}</td>
+                            {% elif report_type == 'lucky_numbers' %}
+                                <td>{{ item.lucky_number }}</td>
+                            {% endif %}
+                            <td>{{ item.count }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% elif report_type == 'sentiment_analysis' %}
+            <div class="chart-container">
+                <canvas id="reportChart"></canvas>
+            </div>
+            
+            <div class="sentiment-summary">
+                {% for item in sentiment_stats %}
+                    <div class="sentiment-block {% if item.sentiment == 'позитивный' %}positive-block{% elif item.sentiment == 'негативный' %}negative-block{% else %}neutral-block{% endif %}">
+                        <div>{{ item.sentiment|capfirst }}</div>
+                        <div class="sentiment-count">{{ item.count }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Знак зодиака</th>
+                        <th>Дата</th>
+                        <th>Тональность</th>
+                        <th>Количество слов</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in report_data %}
+                        <tr>
+                            <td>{{ item.sign }}</td>
+                            <td>{{ item.date|date:"d.m.Y" }}</td>
+                            <td class="sentiment-{% if item.sentiment == 'позитивный' %}positive{% elif item.sentiment == 'негативный' %}negative{% else %}neutral{% endif %}">
+                                {{ item.sentiment|capfirst }}
+                            </td>
+                            <td>{{ item.words_count }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% elif report_type == 'detailed_predictions' %}
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Знак зодиака</th>
+                        <th>Предсказание</th>
+                        <th>Любовь</th>
+                        <th>Карьера</th>
+                        <th>Здоровье</th>
+                        <th>Счастливое число</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in report_data %}
+                        <tr>
+                            <td>{{ item.date|date:"d.m.Y" }}</td>
+                            <td>{{ item.sign.name }}</td>
+                            <td>{{ item.prediction|truncatechars:100 }}</td>
+                            <td>{{ item.love|truncatechars:50 }}</td>
+                            <td>{{ item.career|truncatechars:50 }}</td>
+                            <td>{{ item.health|truncatechars:50 }}</td>
+                            <td>{{ item.lucky_number }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</div>
+
+{% if report_type == 'predictions_by_sign' or report_type == 'predictions_by_date' or report_type == 'lucky_numbers' or report_type == 'sentiment_analysis' %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var ctx = document.getElementById('reportChart').getContext('2d');
+        
+        // Используем JSON.parse для безопасного преобразования строковых данных в JavaScript массивы
+        var chartLabels = JSON.parse('{{ chart_labels|escapejs }}');
+        var chartData = JSON.parse('{{ chart_data|escapejs }}');
+        
+        var chartType = '{{ report_type }}' === 'sentiment_analysis' ? 'pie' : 'bar';
+        var chartColors = [];
+        
+        if ('{{ report_type }}' === 'sentiment_analysis') {
+            chartColors = [
+                'rgba(40, 167, 69, 0.6)',  // позитивный
+                'rgba(108, 117, 125, 0.6)', // нейтральный
+                'rgba(220, 53, 69, 0.6)'   // негативный
+            ];
+        } else {
+            // Генерируем цвета для столбчатых диаграмм
+            for (var i = 0; i < chartData.length; i++) {
+                chartColors.push('rgba(79, 174, 200, 0.6)');
+            }
+        }
+        
+        var chartConfig = {
+            type: chartType,
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: '{{ report_title }}',
+                    data: chartData,
+                    backgroundColor: chartColors,
+                    borderColor: chartColors.map(color => color.replace('0.6', '1')),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        },
+                        display: chartType !== 'pie'
+                    },
+                    x: {
+                        display: chartType !== 'pie'
+                    }
+                }
+            }
+        };
+        
+        new Chart(ctx, chartConfig);
+    });
+</script>
+{% endif %}
+{% endblock %} 

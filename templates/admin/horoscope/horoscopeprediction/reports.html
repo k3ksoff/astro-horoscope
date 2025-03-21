@@ -1,0 +1,110 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static "admin/css/forms.css" %}">
+<style>
+    .module {
+        margin-bottom: 20px;
+    }
+    .form-row {
+        padding: 8px 12px;
+        margin: 0;
+        border-bottom: 1px solid #eee;
+    }
+    .report-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .report-type {
+        margin-bottom: 5px;
+    }
+    .button, input[type=submit] {
+        background: #79aec8;
+        color: #fff;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .button:hover, input[type=submit]:hover {
+        background: #609ab6;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url 'admin:horoscope_horoscopeprediction_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; {% translate 'Reports' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module">
+        <h2>Отчеты по гороскопам</h2>
+        <div class="description">
+            <p>Выберите тип отчета и укажите параметры для формирования.</p>
+        </div>
+        
+        <form action="{% url 'admin:horoscope_generate_report' %}" method="post">
+            {% csrf_token %}
+            
+            <div class="form-row">
+                <label for="report_type">Тип отчета:</label>
+                <div class="report-options">
+                    <div class="report-type">
+                        <input type="radio" id="predictions_by_sign" name="report_type" value="predictions_by_sign" checked>
+                        <label for="predictions_by_sign">Количество предсказаний по знакам зодиака</label>
+                    </div>
+                    <div class="report-type">
+                        <input type="radio" id="predictions_by_date" name="report_type" value="predictions_by_date">
+                        <label for="predictions_by_date">Количество предсказаний по датам</label>
+                    </div>
+                    <div class="report-type">
+                        <input type="radio" id="lucky_numbers" name="report_type" value="lucky_numbers">
+                        <label for="lucky_numbers">Статистика счастливых чисел</label>
+                    </div>
+                    <div class="report-type">
+                        <input type="radio" id="sentiment_analysis" name="report_type" value="sentiment_analysis">
+                        <label for="sentiment_analysis">Анализ тональности предсказаний</label>
+                    </div>
+                    <div class="report-type">
+                        <input type="radio" id="detailed_predictions" name="report_type" value="detailed_predictions">
+                        <label for="detailed_predictions">Детальный отчет по предсказаниям</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <label for="sign_id">Знак зодиака:</label>
+                <select name="sign_id" id="sign_id">
+                    <option value="all">Все знаки</option>
+                    {% for sign in signs %}
+                    <option value="{{ sign.id }}">{{ sign.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <label for="start_date">Период с:</label>
+                <input type="date" name="start_date" id="start_date" value="{{ month_ago }}">
+            </div>
+            
+            <div class="form-row">
+                <label for="end_date">по:</label>
+                <input type="date" name="end_date" id="end_date" value="{{ today }}">
+            </div>
+            
+            <div class="submit-row">
+                <input type="submit" value="Сформировать отчет" class="default">
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

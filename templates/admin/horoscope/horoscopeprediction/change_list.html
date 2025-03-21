@@ -9,5 +9,12 @@
         </a>
     </li>
     {% endif %}
+    {% if show_reports_button %}
+    <li>
+        <a href="{% url 'admin:horoscope_reports' %}" class="viewlink">
+            Отчеты
+        </a>
+    </li>
+    {% endif %}
     {{ block.super }}
 {% endblock %} 
